@@ -2,12 +2,9 @@ import requests
 import telebot
 from telebot import types
 
-# Solicita el token del bot al usuario
-token = input("Introduce el token del bot: ")
-
-# Solicita el chat ID al usuario
-CHAT_ID = input("Introduce el chat ID: ")
-
+# Solicitar el token del bot desde la terminal
+token = input("Introduce el token del bot: ").strip()
+CHAT_ID = input("Introduce el chat ID: ").strip()  # Asegúrate de que este valor se proporciona antes de ejecutar el bot
 bot = telebot.TeleBot(token, parse_mode="HTML")
 
 def ahmed(file):
@@ -159,14 +156,6 @@ def start(message):
 def main(message):
     hits, bad = 0, 0
     ko = bot.reply_to(message, "Checking Your Email...⌛").message_id
-    ee = bot.download_file(bot.get_file(message.document.file_id).file_path)
-
-    with open("combo.txt", "wb") as w:
-        w.write(ee)
-
     try:
-        with open("combo.txt", 'r') as f:
-            lines = f.readlines()
-            total = len(lines)
-            for line in lines:
-                password
+        ee = bot.download_file(bot.get_file(message.document.file_id).file_path)
+       
